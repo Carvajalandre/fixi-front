@@ -2,16 +2,26 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { logout, getRole } from "../lib/auth"
 
 export default function Sidebar() {
   const router = useRouter()
-  const role = getRole()
+  const [role, setRole] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setRole(getRole())
+    setMounted(true)
+  }, [])
 
   const handleLogout = () => {
     logout()
     router.push("/login")
   }
+
+  // ⛔ Evita renderizar hasta que el cliente esté listo
+  if (!mounted) return null
 
   return (
     <aside className="w-64 bg-white border-r min-h-screen p-6">

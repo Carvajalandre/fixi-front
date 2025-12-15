@@ -47,7 +47,7 @@ export default function RegisterPage() {
         value={fullName}
         onChange={(e) => setFullName(e.target.value)}
         placeholder="Nombre Completo"
-        className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:border-green-400 focus:shadow-md"
+        className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-green-400 focus:shadow-md"
         required
         />
 
@@ -56,7 +56,7 @@ export default function RegisterPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="example@gmail.com"
-          className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-blue-500 focus:shadow-md"
+          className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-green-400 focus:shadow-md"
           required
         />
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="password"
-          className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-blue-500 focus:shadow-md"
+          className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-green-400 focus:shadow-md"
           required
         />
 
@@ -75,7 +75,7 @@ export default function RegisterPage() {
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
-          className="w-full p-2 mb-4 border rounded text-gray-700 focus:ring-2 focus:ring-blue-300"
+          className="w-full p-2 mb-4 border-2 border-gray-300 rounded-lg placeholder-gray-400 text-black focus:outline-none focus:border-green-400 focus:shadow-md"
         >
           <option value="user">Usuario</option>
           <option value="support">Soporte</option>
