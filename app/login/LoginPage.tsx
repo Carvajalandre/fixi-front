@@ -28,6 +28,8 @@ export default function LoginPage() {
       localStorage.setItem("token", token)
       localStorage.setItem("role", role)
 
+      document.cookie = `token=${token}; path=/`
+
       if (role === "support") {
         window.location.href = "/dashboard/support"
       } else {
