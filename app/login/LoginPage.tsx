@@ -24,9 +24,11 @@ export default function LoginPage() {
 
       const token = data.token
       const role = data.role.toLowerCase()
+      const userId = data.user.id
 
       localStorage.setItem("token", token)
       localStorage.setItem("role", role)
+      localStorage.setItem("user_id", userId.toString())
 
       document.cookie = `token=${token}; path=/`
 

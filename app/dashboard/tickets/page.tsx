@@ -1,46 +1,64 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { getTickets, createTicket } from "../../../src/lib/tickets"
+
+type TicketStatus = {
+  id: number
+  status_name: string
+}
 
 type Ticket = {
   id: number
   title: string
   description: string
-  status: "Abierto"
+  status: TicketStatus
 }
+
+
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [loading, setLoading] = useState(true)
 
-  const handleCreate = () => {
-    if (!title.trim()) return alert("El título es obligatorio")
+  useEffect(() => {
+    loadTickets()
+  }, [])
 
-    const newTicket: Ticket = {
-      id: Date.now(),
-      title,
-      description,
-      status: "Abierto",
+  const loadTickets = async () => {
+    try {
+      const data = await getTickets()
+      setTickets(data)
+    } catch {
+      alert("No se pudieron cargar los tickets")
+    } finally {
+      setLoading(false)
     }
-
-    setTickets([...tickets, newTicket])
-    setTitle("")
-    setDescription("")
   }
 
-  const handleDelete = (id: number) => {
-    setTickets(tickets.filter((t) => t.id !== id))
+  const handleCreate = async () => {
+    if (!title.trim()) return alert("Título obligatorio")
+
+    try {
+      const newTicket = await createTicket(title, description)
+      setTickets([newTicket, ...tickets])
+      setTitle("")
+      setDescription("")
+    } catch {
+      alert("Error al crear ticket")
+    }
   }
+
+  if (loading) return <p className="text-black">Cargando tickets...</p>
 
   return (
     <div className="max-w-3xl text-black">
       <h1 className="text-2xl font-bold mb-6">Mis tickets</h1>
 
-      {/* Crear ticket */}
+      {/* Crear */}
       <div className="border rounded p-4 mb-6 bg-white">
-        <h2 className="font-semibold mb-2">Crear nuevo ticket</h2>
-
         <input
           className="w-full border p-2 rounded mb-2"
           placeholder="Título"
@@ -65,30 +83,21 @@ export default function TicketsPage() {
 
       {/* Lista */}
       {tickets.length === 0 ? (
-        <p>No tienes tickets aún.</p>
+        <p>No tienes tickets.</p>
       ) : (
         <div className="space-y-4">
           {tickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="border rounded p-4 bg-white flex justify-between items-start"
+              className="border rounded p-4 bg-white"
             >
-              <div>
-                <h3 className="font-semibold">{ticket.title}</h3>
-                <p className="text-sm text-gray-700">
-                  {ticket.description || "Sin descripción"}
-                </p>
-                <span className="text-xs text-blue-600">
-                  Estado: {ticket.status}
-                </span>
-              </div>
-
-              <button
-                onClick={() => handleDelete(ticket.id)}
-                className="text-red-600 hover:underline text-sm"
-              >
-                Eliminar
-              </button>
+              <h3 className="font-semibold">{ticket.title}</h3>
+              <p className="text-sm text-gray-700">
+                {ticket.description}
+              </p>
+              <span className="text-xs text-blue-600">
+                  Estado: {ticket.status?.status_name ?? "Sin estado"}
+              </span>
             </div>
           ))}
         </div>
