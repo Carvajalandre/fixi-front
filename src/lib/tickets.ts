@@ -1,29 +1,20 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+import { apiFetch } from "./api"
 
 export async function getTickets() {
-  const token = localStorage.getItem("token")
+  const res = await apiFetch("/tickets")
 
-  const res = await fetch(`${API_URL}/tickets`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  if (!res.ok) {
+    throw new Error("Error al cargar tickets")
+  }
 
-  if (!res.ok) throw new Error("Error al cargar tickets")
   return res.json()
 }
 
-
 export async function createTicket(title: string, description: string) {
-  const token = localStorage.getItem("token")
   const userId = localStorage.getItem("user_id")
 
-  const res = await fetch(`${API_URL}/tickets`, {
+  const res = await apiFetch("/tickets", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       title,
       description,
@@ -32,6 +23,9 @@ export async function createTicket(title: string, description: string) {
     }),
   })
 
-  if (!res.ok) throw new Error("Error al crear ticket")
+  if (!res.ok) {
+    throw new Error("Error al crear ticket")
+  }
+
   return res.json()
 }

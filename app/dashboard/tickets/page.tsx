@@ -1,5 +1,6 @@
 "use client"
 
+import { getRole } from "../../../src/lib/auth"
 import { useEffect, useState } from "react"
 import { getTickets, createTicket } from "../../../src/lib/tickets"
 
@@ -18,10 +19,15 @@ type Ticket = {
 
 
 export default function TicketsPage() {
+  const role = getRole()
+  const isSupport = role === "support"
+
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(true)
+  const [allTickets, setAllTickets] = useState<Ticket[]>([])
+
 
   useEffect(() => {
     loadTickets()
@@ -31,19 +37,24 @@ export default function TicketsPage() {
     try {
       const data = await getTickets()
       setTickets(data)
-    } catch {
-      alert("No se pudieron cargar los tickets")
+      setAllTickets(data)
+    } catch (error){
+      console.error("No se pudieron cargar los tickets", error)
     } finally {
       setLoading(false)
     }
   }
 
+
   const handleCreate = async () => {
     if (!title.trim()) return alert("Título obligatorio")
 
     try {
-      const newTicket = await createTicket(title, description)
-      setTickets([newTicket, ...tickets])
+      await createTicket(title, description)
+
+      // 🔁 volver a cargar tickets desde backend
+      await loadTickets()
+
       setTitle("")
       setDescription("")
     } catch {
@@ -51,14 +62,58 @@ export default function TicketsPage() {
     }
   }
 
+
   if (loading) return <p className="text-black">Cargando tickets...</p>
+  const filterByStatus = (statusName: string) => {
+    if (statusName === "all") {
+      setTickets(allTickets)
+    } else {
+      setTickets(
+        allTickets.filter(
+          (t) => t.status?.status_name === statusName
+        )
+      )
+    }
+  }
+
 
   return (
     <div className="max-w-3xl text-black">
       <h1 className="text-2xl font-bold mb-6">Mis tickets</h1>
+        <div className="flex gap-2 mb-4">
+          <button
+            className="border px-3 py-1 rounded"
+            onClick={() => filterByStatus("all")}
+          >
+            Todos
+          </button>
+
+          <button
+            className="border px-3 py-1 rounded"
+            onClick={() => filterByStatus("open")}
+          >
+            Abiertos
+          </button>
+
+          <button
+            className="border px-3 py-1 rounded"
+            onClick={() => filterByStatus("in_progress")}
+          >
+            En progreso
+          </button>
+
+          <button
+            className="border px-3 py-1 rounded"
+            onClick={() => filterByStatus("finish")}
+          >
+            Finalizados
+          </button>
+        </div>
+
 
       {/* Crear */}
-      <div className="border rounded p-4 mb-6 bg-white">
+      {!isSupport && (
+        <div className="border rounded p-4 mb-6 bg-white">
         <input
           className="w-full border p-2 rounded mb-2"
           placeholder="Título"
@@ -79,8 +134,8 @@ export default function TicketsPage() {
         >
           Crear ticket
         </button>
-      </div>
-
+        </div>
+      )}
       {/* Lista */}
       {tickets.length === 0 ? (
         <p>No tienes tickets.</p>
@@ -98,6 +153,21 @@ export default function TicketsPage() {
               <span className="text-xs text-blue-600">
                   Estado: {ticket.status?.status_name ?? "Sin estado"}
               </span>
+              {isSupport && (
+                <div className="mt-3 flex gap-2">
+                  <button
+                    className="text-xs border px-2 py-1 rounded hover:bg-gray-100"
+                  >
+                    Tomar ticket
+                  </button>
+
+                  <button
+                    className="text-xs border px-2 py-1 rounded hover:bg-gray-100"
+                  >
+                    Finalizar
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
