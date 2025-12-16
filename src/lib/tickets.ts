@@ -29,3 +29,26 @@ export async function createTicket(title: string, description: string) {
 
   return res.json()
 }
+
+export async function assignTicket(ticketId: number) {
+  const res = await apiFetch(`/tickets/${ticketId}/assign`, {
+    method: "POST",
+  })
+
+  if (!res.ok) {
+    throw new Error("Error al asignar ticket")
+  }
+
+  return res.json()
+}
+
+export async function deleteTicket(ticketId: number) {
+  const res = await apiFetch(`/tickets/${ticketId}`, {
+    method: "DELETE",
+  })
+
+  if (!res.ok) {
+    throw new Error("Error al eliminar ticket")
+  }
+}
+

@@ -1,7 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getTickets } from "../../../../src/lib/tickets"
+import {
+  getTickets,
+  assignTicket,
+  deleteTicket,
+} from "../../../../src/lib/tickets"
 import { getRole } from "../../../../src/lib/auth"
 
 type TicketStatus = {
@@ -15,7 +19,7 @@ type Ticket = {
   description: string
   status: TicketStatus
   requester: { full_name: string }
-  assignedSupport: { full_name: string } | null
+  assigned_support: { full_name: string } | null
 }
 
 export default function SupportTicketsPage() {
@@ -44,10 +48,15 @@ export default function SupportTicketsPage() {
     }
   }
 
-  const handleAssign = (ticketId: number) => {
-    // Lógica para asignar el ticket a este soporte
-    alert(`Asignando ticket ${ticketId} a soporte`)
+  const handleAssign = async (ticketId: number) => {
+    try {
+      await assignTicket(ticketId)
+      await loadTickets()
+    } catch (error) {
+      alert("No se pudo asignar el ticket")
+    }
   }
+
 
   if (!isSupport) {
     return <p className="text-black">Acceso no autorizado</p>
@@ -62,8 +71,8 @@ const filteredTickets = tickets.filter((ticket) => {
 
   const assignedMatch =
     assignedFilter === "all" ||
-    (assignedFilter === "assigned" && ticket.assignedSupport) ||
-    (assignedFilter === "unassigned" && !ticket.assignedSupport)
+    (assignedFilter === "assigned" && ticket.assigned_support) ||
+    (assignedFilter === "unassigned" && !ticket.assigned_support)
 
   return statusMatch && assignedMatch
 })
@@ -129,10 +138,10 @@ const filteredTickets = tickets.filter((ticket) => {
             </div>
 
             <div className="mt-2 text-xs text-gray-500">
-              Asignado a: {ticket.assignedSupport?.full_name ?? "No asignado"}
+              Asignado a: {ticket.assigned_support?.full_name ?? "No asignado"}
             </div>
 
-            {!ticket.assignedSupport && (
+            {!ticket.assigned_support && (
               <button
                 onClick={() => handleAssign(ticket.id)}
                 className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
@@ -140,6 +149,22 @@ const filteredTickets = tickets.filter((ticket) => {
                 Asignar este ticket
               </button>
             )}
+            <button
+  onClick={async () => {
+    if (!confirm("¿Eliminar este ticket?")) return
+
+    try {
+      await deleteTicket(ticket.id)
+      await loadTickets()
+    } catch {
+      alert("No se pudo eliminar el ticket")
+    }
+  }}
+  className="bg-red-500 text-white px-4 py-2 rounded mt-2 ml-2"
+>
+  Eliminar
+</button>
+
           </div>
         ))}
       </div>
