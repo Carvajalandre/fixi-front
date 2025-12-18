@@ -23,6 +23,13 @@ export default function TicketsPage() {
   const role = getRole()
   const isSupport = role === "support"
 
+  useEffect(() => {
+    if (isSupport) {
+      window.location.href = "/dashboard/support/tickets"
+    }
+  }, [isSupport])
+
+
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")

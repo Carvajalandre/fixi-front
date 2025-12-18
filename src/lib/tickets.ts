@@ -66,3 +66,17 @@ export async function updateTicket(ticketId: number, description: string) {
 
   return res.json()
 }
+export async function updateTicketStatus(ticketId: number, statusId: number) {
+  const res = await apiFetch(`/tickets/${ticketId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      status_id: statusId,
+    }),
+  })
+
+  if (!res.ok) {
+    throw new Error("Error al cambiar estado del ticket")
+  }
+
+  return res.json()
+}

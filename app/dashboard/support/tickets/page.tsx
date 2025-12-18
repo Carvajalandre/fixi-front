@@ -5,6 +5,7 @@ import {
   getTickets,
   assignTicket,
   deleteTicket,
+  updateTicketStatus,
 } from "../../../../src/lib/tickets"
 import { getRole } from "../../../../src/lib/auth"
 
@@ -54,6 +55,15 @@ export default function SupportTicketsPage() {
       await loadTickets()
     } catch (error) {
       alert("No se pudo asignar el ticket")
+    }
+  }
+  
+  const handleChangeStatus = async (ticketId: number, statusId: number) => {
+    try {
+      await updateTicketStatus(ticketId, statusId)
+      await loadTickets()
+    } catch (error) {
+      alert("No se pudo cambiar el estado")
     }
   }
 
@@ -120,55 +130,60 @@ const filteredTickets = tickets.filter((ticket) => {
     </div>
 
     {/* LISTA */}
-    {filteredTickets.length === 0 ? (
-      <p>No hay tickets disponibles.</p>
-    ) : (
-      <div className="space-y-4">
-        {filteredTickets.map((ticket) => (
-          <div key={ticket.id} className="border rounded p-4 bg-white">
-            <h3 className="font-semibold">{ticket.title}</h3>
-            <p className="text-sm text-gray-700">{ticket.description}</p>
+    {filteredTickets.map((ticket) => (
+      <div key={ticket.id} className="border rounded p-4 bg-white">
+        <h3 className="font-semibold">{ticket.title}</h3>
+        <p className="text-sm text-gray-700">{ticket.description}</p>
 
-            <span className="text-xs text-blue-600">
-              Estado: {ticket.status?.status_name ?? "Sin estado"}
-            </span>
+        {/* 👇 CAMBIAR ESTO: de span a select */}
+        <div className="mt-2 flex items-center gap-2">
+          <label className="text-xs font-medium">Estado:</label>
+          <select
+            value={ticket.status?.id ?? 1}
+            onChange={(e) => handleChangeStatus(ticket.id, Number(e.target.value))}
+            className="text-xs border rounded px-2 py-1"
+          >
+            <option value={1}>open</option>
+            <option value={2}>in_progress</option>
+            <option value={3}>finish</option>
+          </select>
+        </div>
 
-            <div className="mt-2 text-xs text-gray-500">
-              Solicitante: {ticket.requester.full_name}
-            </div>
+        <div className="mt-2 text-xs text-gray-500">
+          Solicitante: {ticket.requester.full_name}
+        </div>
 
-            <div className="mt-2 text-xs text-gray-500">
-              Asignado a: {ticket.assigned_support?.full_name ?? "No asignado"}
-            </div>
+        <div className="mt-2 text-xs text-gray-500">
+          Asignado a: {ticket.assigned_support?.full_name ?? "No asignado"}
+        </div>
 
-            {!ticket.assigned_support && (
-              <button
-                onClick={() => handleAssign(ticket.id)}
-                className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
-              >
-                Asignar este ticket
-              </button>
-            )}
+        <div className="mt-3 flex gap-2">
+          {!ticket.assigned_support && (
             <button
-  onClick={async () => {
-    if (!confirm("¿Eliminar este ticket?")) return
-
-    try {
-      await deleteTicket(ticket.id)
-      await loadTickets()
-    } catch {
-      alert("No se pudo eliminar el ticket")
-    }
-  }}
-  className="bg-red-500 text-white px-4 py-2 rounded mt-2 ml-2"
->
-  Eliminar
-</button>
-
-          </div>
-        ))}
+              onClick={() => handleAssign(ticket.id)}
+              className="bg-blue-500 text-white px-4 py-2 rounded text-sm"
+            >
+              Asignar este ticket
+            </button>
+          )}
+          
+          <button
+            onClick={async () => {
+              if (!confirm("¿Eliminar este ticket?")) return
+              try {
+                await deleteTicket(ticket.id)
+                await loadTickets()
+              } catch {
+                alert("No se pudo eliminar el ticket")
+              }
+            }}
+            className="bg-red-500 text-white px-4 py-2 rounded text-sm"
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
-    )}
+    ))}
   </div>
 )
 
