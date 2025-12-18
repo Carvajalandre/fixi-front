@@ -2,7 +2,7 @@
 
 import { getRole } from "../../../src/lib/auth"
 import { useEffect, useState } from "react"
-import { getTickets, createTicket } from "../../../src/lib/tickets"
+import { getTickets, createTicket, updateTicket } from "../../../src/lib/tickets"
 
 type TicketStatus = {
   id: number
@@ -14,6 +14,7 @@ type Ticket = {
   title: string
   description: string
   status: TicketStatus
+  assigned_support: { full_name: string } | null
 }
 
 
@@ -27,7 +28,8 @@ export default function TicketsPage() {
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(true)
   const [allTickets, setAllTickets] = useState<Ticket[]>([])
-
+  const [editingTicketId, setEditingTicketId] = useState<number | null>(null)
+  const [editDescription, setEditDescription] = useState("")
 
   useEffect(() => {
     loadTickets()
@@ -60,6 +62,27 @@ export default function TicketsPage() {
     } catch {
       alert("Error al crear ticket")
     }
+  }
+
+  const handleEdit = (ticket: Ticket) => {
+    setEditingTicketId(ticket.id)
+    setEditDescription(ticket.description)
+  }
+
+  const handleSaveEdit = async (ticketId: number) => {
+    try {
+      await updateTicket(ticketId, editDescription)
+      await loadTickets()
+      setEditingTicketId(null)
+      setEditDescription("")
+    } catch {
+      alert("Error al actualizar ticket")
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingTicketId(null)
+    setEditDescription("")
   }
 
 
@@ -142,28 +165,63 @@ export default function TicketsPage() {
       ) : (
         <div className="space-y-4">
           {tickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="border rounded p-4 bg-white"
-            >
+            <div key={ticket.id} className="border rounded p-4 bg-white">
               <h3 className="font-semibold">{ticket.title}</h3>
-              <p className="text-sm text-gray-700">
-                {ticket.description}
-              </p>
-              <span className="text-xs text-blue-600">
-                  Estado: {ticket.status?.status_name ?? "Sin estado"}
+              
+              {/* Mostrar descripción o campo de edición */}
+              {editingTicketId === ticket.id ? (
+                <div className="mt-2">
+                  <textarea
+                    className="w-full border p-2 rounded mb-2"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleSaveEdit(ticket.id)}
+                      className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-700">
+                    {ticket.description}
+                  </p>
+                  {!isSupport && (
+                    <button
+                      onClick={() => handleEdit(ticket)}
+                      className="mt-2 text-xs text-blue-600 hover:underline"
+                    >
+                      Editar descripción
+                    </button>
+                  )}
+                </>
+              )}
+              
+              <span className="text-xs text-blue-600 block mt-2">
+                Estado: {ticket.status?.status_name ?? "Sin estado"}
               </span>
+              
+              <div className="mt-2 text-xs text-gray-600">
+                Asignado a: {ticket.assigned_support?.full_name ?? "Sin asignar"}
+              </div>
+
               {isSupport && (
                 <div className="mt-3 flex gap-2">
-                  <button
-                    className="text-xs border px-2 py-1 rounded hover:bg-gray-100"
-                  >
+                  <button className="text-xs border px-2 py-1 rounded hover:bg-gray-100">
                     Tomar ticket
                   </button>
-
-                  <button
-                    className="text-xs border px-2 py-1 rounded hover:bg-gray-100"
-                  >
+                  <button className="text-xs border px-2 py-1 rounded hover:bg-gray-100">
                     Finalizar
                   </button>
                 </div>

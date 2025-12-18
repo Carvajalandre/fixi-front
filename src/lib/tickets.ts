@@ -52,3 +52,17 @@ export async function deleteTicket(ticketId: number) {
   }
 }
 
+export async function updateTicket(ticketId: number, description: string) {
+  const res = await apiFetch(`/tickets/${ticketId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      description,
+    }),
+  })
+
+  if (!res.ok) {
+    throw new Error("Error al actualizar ticket")
+  }
+
+  return res.json()
+}
