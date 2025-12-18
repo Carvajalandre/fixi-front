@@ -28,7 +28,10 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) return alert(data.error || "Error al registrarse")
+
       alert("Usuario registrado correctamente")
+      // Redirigir al login
+      window.location.href = "/login"
     } catch (err) {
       console.error(err)
       alert("Error al registrar usuario")
