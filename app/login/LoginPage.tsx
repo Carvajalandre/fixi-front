@@ -23,20 +23,19 @@ export default function LoginPage() {
       }
 
       const token = data.token
-      //const role = data.role.toLowerCase()
-      //const userId = data.user.id
+      const role = data.role.toLowerCase() // "user" o "support"
       const user = data.user
-      const role = data.role.toLowerCase() || (window.location.pathname.includes("/support") ? "support" : "user")
 
+      // Guardar en localStorage
       localStorage.setItem("token", token)
-      localStorage.setItem("user", JSON.stringify({...user, role }))
-      //localStorage.setItem("role", role)
-      //localStorage.setItem("user_id", userId.toString())
-      //localStorage.setItem("user", JSON.stringify(user))
+      localStorage.setItem("role", role)
+      localStorage.setItem("user_id", user.id.toString())
+      localStorage.setItem("user", JSON.stringify({ ...user, role }))
 
       document.cookie = `token=${token}; path=/`
 
-      if (user.role === "support") {
+      // Redirección según rol
+      if (role === "support") {
         window.location.href = "/dashboard/support"
       } else {
         window.location.href = "/dashboard"
