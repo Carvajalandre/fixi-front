@@ -204,14 +204,12 @@ export default function TicketsPage() {
                   <p className="text-sm text-gray-700">
                     {ticket.description}
                   </p>
-                  {!isSupport && (
                     <button
                       onClick={() => handleEdit(ticket)}
                       className="mt-2 text-xs text-blue-600 hover:underline"
                     >
                       Editar descripción
                     </button>
-                  )}
                 </>
               )}
               
@@ -222,17 +220,6 @@ export default function TicketsPage() {
               <div className="mt-2 text-xs text-gray-600">
                 Asignado a: {ticket.assigned_support?.full_name ?? "Sin asignar"}
               </div>
-
-              {isSupport && (
-                <div className="mt-3 flex gap-2">
-                  <button className="text-xs border px-2 py-1 rounded hover:bg-gray-100">
-                    Tomar ticket
-                  </button>
-                  <button className="text-xs border px-2 py-1 rounded hover:bg-gray-100">
-                    Finalizar
-                  </button>
-                </div>
-              )}
             </div>
           ))}
         </div>
