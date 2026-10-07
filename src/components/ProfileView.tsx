@@ -68,7 +68,7 @@ export default function ProfileView({
         <div className="h-24 bg-[#1e2928] relative">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_50%,#05AD98,transparent_55%)]" />
         </div>
-        <div className="px-6 md:px-8 pb-7">
+        <div className="relative px-6 md:px-8 pb-7">
           <div className="-mt-10 mb-4 flex items-end justify-between">
             <div
               className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-[#e6f7f4] text-[#03695e] shadow-sm"
