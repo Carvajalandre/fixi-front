@@ -1,326 +1,282 @@
-"use client"
+"use client";
 
-import { getRole } from "../../../src/lib/auth"
-import { useEffect, useState } from "react"
-import { getTickets, createTicket, updateTicket } from "../../../src/lib/tickets"
+import { getRole } from "../../../src/lib/auth";
+import { useEffect, useState } from "react";
+import { getTickets, createTicket, updateTicket } from "../../../src/lib/tickets";
+import {
+  Card,
+  EmptyState,
+  Icons,
+  LoadingState,
+  PageHeader,
+  StatusBadge,
+  inputClasses,
+  labelClasses,
+  primaryButton,
+  secondaryButton,
+} from "../../../src/components/ui";
 
 type TicketStatus = {
-  id: number
-  status_name: string
-}
+  id: number;
+  status_name: string;
+};
 
 type Ticket = {
-  id: number
-  title: string
-  description: string
-  status: TicketStatus
-  assigned_support: { full_name: string } | null
-}
+  id: number;
+  title: string;
+  description: string;
+  status: TicketStatus;
+  assigned_support: { full_name: string } | null;
+};
+
+const FILTERS = [
+  { id: "all", label: "Todos" },
+  { id: "open", label: "Abiertos" },
+  { id: "in_progress", label: "En progreso" },
+  { id: "finish", label: "Finalizados" },
+];
 
 export default function TicketsPage() {
-  const role = getRole()
-  const isSupport = role === "support"
+  const role = getRole();
+  const isSupport = role === "support";
 
   useEffect(() => {
     if (isSupport) {
-      window.location.href = "/dashboard/support/tickets"
+      window.location.href = "/dashboard/support/tickets";
     }
-  }, [isSupport])
+  }, [isSupport]);
 
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [allTickets, setAllTickets] = useState<Ticket[]>([])
-  const [editingTicketId, setEditingTicketId] = useState<number | null>(null)
-  const [editDescription, setEditDescription] = useState("")
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [allTickets, setAllTickets] = useState<Ticket[]>([]);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [editingTicketId, setEditingTicketId] = useState<number | null>(null);
+  const [editDescription, setEditDescription] = useState("");
 
   useEffect(() => {
-    loadTickets()
-  }, [])
+    loadTickets();
+  }, []);
 
   const loadTickets = async () => {
     try {
-      const data = await getTickets()
-      setTickets(data)
-      setAllTickets(data)
+      const data = await getTickets();
+      setTickets(data);
+      setAllTickets(data);
     } catch (error) {
-      console.error("No se pudieron cargar los tickets", error)
+      console.error("No se pudieron cargar los tickets", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCreate = async () => {
-    if (!title.trim()) return alert("Título obligatorio")
-
+    if (!title.trim()) return;
+    setCreating(true);
     try {
-      await createTicket(title, description)
-      await loadTickets()
-      setTitle("")
-      setDescription("")
+      await createTicket(title, description);
+      await loadTickets();
+      setTitle("");
+      setDescription("");
+      setActiveFilter("all");
     } catch {
-      alert("Error al crear ticket")
+      alert("No se pudo crear el ticket");
+    } finally {
+      setCreating(false);
     }
-  }
+  };
 
   const handleEdit = (ticket: Ticket) => {
-    setEditingTicketId(ticket.id)
-    setEditDescription(ticket.description)
-  }
+    setEditingTicketId(ticket.id);
+    setEditDescription(ticket.description);
+  };
 
   const handleSaveEdit = async (ticketId: number) => {
     try {
-      await updateTicket(ticketId, editDescription)
-      await loadTickets()
-      setEditingTicketId(null)
-      setEditDescription("")
+      await updateTicket(ticketId, editDescription);
+      await loadTickets();
+      setEditingTicketId(null);
+      setEditDescription("");
     } catch {
-      alert("Error al actualizar ticket")
+      alert("No se pudo actualizar el ticket");
     }
-  }
-
-  const handleCancelEdit = () => {
-    setEditingTicketId(null)
-    setEditDescription("")
-  }
+  };
 
   const filterByStatus = (statusName: string) => {
+    setActiveFilter(statusName);
     if (statusName === "all") {
-      setTickets(allTickets)
+      setTickets(allTickets);
     } else {
-      setTickets(allTickets.filter((t) => t.status?.status_name === statusName))
+      setTickets(allTickets.filter((t) => t.status?.status_name === statusName));
     }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "in_progress":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "finish":
-        return "bg-green-100 text-green-800 border-green-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "open":
-        return "Abierto"
-      case "in_progress":
-        return "En progreso"
-      case "finish":
-        return "Finalizado"
-      default:
-        return status
-    }
-  }
+  };
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando tickets...</p>
-        </div>
-      </div>
-    )
+      <Card>
+        <LoadingState label="Cargando tickets…" />
+      </Card>
+    );
 
   return (
-    <div className="max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Mis Tickets</h1>
-        <p className="text-gray-600">
-          Gestiona y da seguimiento a tus solicitudes de soporte
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Mis tickets"
+        description="Crea solicitudes y consulta el estado de cada caso."
+      />
 
       {/* Filtros */}
-      <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-sm font-medium text-gray-700">Filtrar por estado:</span>
-          <button
-            onClick={() => filterByStatus("all")}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all
-              bg-gray-100 hover:bg-gray-200 text-gray-700"
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => filterByStatus("open")}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all
-              bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-200"
-          >
-            Abiertos
-          </button>
-          <button
-            onClick={() => filterByStatus("in_progress")}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all
-              bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
-          >
-            En progreso
-          </button>
-          <button
-            onClick={() => filterByStatus("finish")}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-all
-              bg-green-50 hover:bg-green-100 text-green-700 border border-green-200"
-          >
-            Finalizados
-          </button>
+      <Card className="p-4 mb-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[13px] font-semibold text-[#3a4746] mr-1">
+            Estado:
+          </span>
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => filterByStatus(f.id)}
+              className={`px-3.5 py-1.5 rounded-lg text-[13px] font-semibold transition-colors border ${
+                activeFilter === f.id
+                  ? "bg-[#1e2928] text-white border-[#1e2928]"
+                  : "bg-white text-[#3a4746] border-[#e2e6e6] hover:bg-[#f4f5f5]"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+          <span className="ml-auto text-xs text-[#878787]">
+            {tickets.length} resultado{tickets.length !== 1 ? "s" : ""}
+          </span>
         </div>
-      </div>
+      </Card>
 
-      {/* Formulario de creación */}
+      {/* Crear */}
       {!isSupport && (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="text-2xl">➕</span>
-            Crear nuevo ticket
-          </h2>
-          
-          <div className="space-y-4">
+        <Card className="p-6 mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e6f7f4] text-[#03695e]">
+              <Icons.plus className="h-5 w-5" />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Título
-              </label>
+              <h2 className="text-[15px] font-semibold text-[#1f2a29]">
+                Nuevo ticket
+              </h2>
+              <p className="text-[13px] text-[#878787]">
+                Describe el problema con el mayor detalle posible.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr] gap-4">
+            <div>
+              <label className={labelClasses}>Título</label>
               <input
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 
-                  focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Describe brevemente tu problema..."
+                className={inputClasses}
+                placeholder="Ej.: Error al iniciar sesión en el portal"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Descripción
-              </label>
+              <label className={labelClasses}>Descripción</label>
               <textarea
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 
-                  focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                placeholder="Proporciona más detalles sobre tu solicitud..."
-                rows={4}
+                className={`${inputClasses} resize-none`}
+                placeholder="Contexto, pasos para reproducir, impacto…"
+                rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-
-            <button
-              onClick={handleCreate}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold 
-                py-3 px-6 rounded-lg transition-all shadow-md hover:shadow-lg"
-            >
-              Crear ticket
-            </button>
+            <div>
+              <button
+                onClick={handleCreate}
+                disabled={creating || !title.trim()}
+                className={`${primaryButton} w-full md:w-auto md:min-w-44`}
+              >
+                {creating ? "Creando…" : "Crear ticket"}
+              </button>
+            </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Lista de tickets */}
+      {/* Lista */}
       {tickets.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">📋</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No tienes tickets
-          </h3>
-          <p className="text-gray-500">
-            Crea tu primer ticket para comenzar
-          </p>
-        </div>
+        <EmptyState
+          title="Sin resultados"
+          description="Ajusta los filtros o crea tu primer ticket para comenzar."
+        />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {tickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 p-6 
-                hover:shadow-lg transition-all"
-            >
-              {/* Header del ticket */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            <Card key={ticket.id} className="p-5 md:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div>
+                  <h3 className="text-[15px] font-semibold text-[#1f2a29]">
                     {ticket.title}
                   </h3>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                        ticket.status?.status_name ?? ""
-                      )}`}
-                    >
-                      {getStatusLabel(ticket.status?.status_name ?? "Sin estado")}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      ID: #{ticket.id}
-                    </span>
-                  </div>
+                  <p className="mt-0.5 text-xs text-[#878787] font-mono">
+                    Caso #{ticket.id}
+                  </p>
                 </div>
+                <StatusBadge status={ticket.status?.status_name ?? ""} />
               </div>
 
-              {/* Descripción o editor */}
               {editingTicketId === ticket.id ? (
-                <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Editando descripción
-                  </label>
+                <div className="mb-3 rounded-lg border border-[#e2e6e6] bg-[#f4f5f5] p-4">
+                  <label className={labelClasses}>Descripción</label>
                   <textarea
-                    className="w-full border border-gray-300 rounded-lg p-3 mb-3 
-                      focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className={`${inputClasses} mb-3 resize-none`}
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
-                    rows={4}
+                    rows={3}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleSaveEdit(ticket.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 
-                        rounded-lg text-sm font-medium transition-all"
+                      className={primaryButton}
                     >
-                      ✓ Guardar
+                      <Icons.check className="h-4 w-4" />
+                      Guardar
                     </button>
                     <button
-                      onClick={handleCancelEdit}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 
-                        rounded-lg text-sm font-medium transition-all"
+                      onClick={() => {
+                        setEditingTicketId(null);
+                        setEditDescription("");
+                      }}
+                      className={secondaryButton}
                     >
-                      ✕ Cancelar
+                      Cancelar
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="mb-4">
-                  <p className="text-gray-700 leading-relaxed mb-3">
+                <div className="mb-3">
+                  <p className="text-sm leading-relaxed text-[#3a4746]">
                     {ticket.description}
                   </p>
                   <button
                     onClick={() => handleEdit(ticket)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium 
-                      hover:underline flex items-center gap-1"
+                    className="mt-2 text-[13px] font-semibold text-[#03695e] hover:underline"
                   >
-                    ✏️ Editar descripción
+                    Editar descripción
                   </button>
                 </div>
               )}
 
-              {/* Footer - Info adicional */}
-              <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">👤 Asignado a:</span>
-                    <span className="text-gray-800">
-                      {ticket.assigned_support?.full_name ?? "Sin asignar"}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 border-t border-[#eef1f1] pt-3 text-[13px] text-[#5b6665]">
+                <Icons.user className="h-4 w-4 text-[#878787]" />
+                <span className="font-medium">Responsable:</span>
+                <span className="text-[#1f2a29] font-semibold">
+                  {ticket.assigned_support?.full_name ?? "Sin asignar"}
+                </span>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }

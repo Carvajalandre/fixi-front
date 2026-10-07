@@ -1,111 +1,123 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
-import { logout } from "../lib/auth"
-import { useEffect, useState } from "react"
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { logout } from "../lib/auth";
+import { useState } from "react";
+import { BrandMark, Icons } from "./ui";
 
 type SidebarProps = {
-  isSupport?: boolean
-}
+  isSupport?: boolean;
+};
 
 export default function Sidebar({ isSupport = false }: SidebarProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [userName, setUserName] = useState("")
-
-  useEffect(() => {
-    const stored = localStorage.getItem("user")
-    if (stored) {
-      const user = JSON.parse(stored)
-      setUserName(user.full_name || "Usuario")
+  const router = useRouter();
+  const pathname = usePathname();
+  const [userName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const stored = localStorage.getItem("user");
+      if (!stored) return "";
+      return JSON.parse(stored).full_name || "Usuario";
+    } catch {
+      return "Usuario";
     }
-  }, [])
+  });
 
   const handleLogout = () => {
-    logout()
-    router.push("/login")
-  }
+    logout();
+    router.push("/login");
+  };
 
-  const profilePath = isSupport ? "/dashboard/support/profile" : "/dashboard/profile"
-  const ticketsPath = isSupport ? "/dashboard/support/tickets" : "/dashboard/tickets"
+  const profilePath = isSupport
+    ? "/dashboard/support/profile"
+    : "/dashboard/profile";
+  const ticketsPath = isSupport
+    ? "/dashboard/support/tickets"
+    : "/dashboard/tickets";
+  const homePath = isSupport ? "/dashboard/support" : "/dashboard";
 
-  const isActive = (path: string) => pathname === path
+  const isActive = (path: string) => pathname === path;
+
+  const linkCls = (active: boolean) =>
+    `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-colors ${
+      active
+        ? "bg-[#05AD98] text-white font-semibold shadow-sm"
+        : "text-[#bbbfbf] hover:bg-[#283836] hover:text-white font-medium"
+    }`;
+
+  const initial = userName.charAt(0).toUpperCase() || "U";
 
   return (
-    <aside className="w-72 bg-gray-900 text-white min-h-screen flex flex-col shadow-2xl">
-      {/* Logo / Header */}
-      <div className="p-6 border-b border-gray-800">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-xl font-bold">F</span>
-          </div>
+    <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col bg-[#1e2928] text-white">
+      {/* Marca */}
+      <div className="px-5 pt-6 pb-5 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <BrandMark />
           <div>
-            <h1 className="text-xl font-bold">Fixi</h1>
-            <p className="text-xs text-gray-400">Sistema de Tickets</p>
+            <p className="text-[15px] font-semibold leading-tight">Fixi</p>
+            <p className="text-[11px] uppercase tracking-[0.12em] text-[#bbbfbf]">
+              Sistema de tickets
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Perfil de usuario */}
-      <div className="p-6 border-b border-gray-800">
+      {/* Usuario */}
+      <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
-            {userName.charAt(0).toUpperCase()}
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6f7f4] text-[15px] font-bold text-[#03695e]">
+            {initial}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate">{userName}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{userName}</p>
             <span
-              className={`inline-block text-xs px-2 py-0.5 rounded-full ${
+              className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                 isSupport
-                  ? "bg-blue-900 text-blue-300"
-                  : "bg-green-900 text-green-300"
+                  ? "bg-[#05AD98]/15 text-[#7fe3d3] border border-[#05AD98]/30"
+                  : "bg-white/10 text-[#e2e6e6] border border-white/15"
               }`}
             >
-              {isSupport ? "🛠️ Soporte" : "👤 Usuario"}
+              {isSupport ? (
+                <Icons.wrench className="h-3 w-3" />
+              ) : (
+                <Icons.user className="h-3 w-3" />
+              )}
+              {isSupport ? "Soporte" : "Usuario"}
             </span>
           </div>
         </div>
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 p-4 space-y-2">
-        <Link
-          href={profilePath}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-            isActive(profilePath)
-              ? "bg-blue-600 text-white shadow-lg"
-              : "text-gray-300 hover:bg-gray-800 hover:text-white"
-          }`}
-        >
-          <span className="text-xl">👤</span>
-          <span className="font-medium">Perfil</span>
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <p className="px-3.5 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#878787]">
+          Principal
+        </p>
+        <Link href={homePath} className={linkCls(isActive(homePath))}>
+          <Icons.chart className="h-[18px] w-[18px]" />
+          Panel general
         </Link>
-
-        <Link
-          href={ticketsPath}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-            isActive(ticketsPath)
-              ? "bg-blue-600 text-white shadow-lg"
-              : "text-gray-300 hover:bg-gray-800 hover:text-white"
-          }`}
-        >
-          <span className="text-xl">🎫</span>
-          <span className="font-medium">Tickets</span>
+        <Link href={ticketsPath} className={linkCls(isActive(ticketsPath))}>
+          <Icons.ticket className="h-[18px] w-[18px]" />
+          Tickets
+        </Link>
+        <Link href={profilePath} className={linkCls(isActive(profilePath))}>
+          <Icons.user className="h-[18px] w-[18px]" />
+          Perfil
         </Link>
       </nav>
 
-      {/* Footer - Logout */}
-      <div className="p-4 border-t border-gray-800">
+      {/* Cierre - siempre visible al pie del sidebar fijo */}
+      <div className="mt-auto p-3 border-t border-white/10 bg-[#1e2928]">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 
-            text-white py-3 px-4 rounded-lg transition-all font-medium shadow-lg hover:shadow-xl"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[#e2e6e6] transition-colors hover:bg-white/10 hover:text-white"
         >
-          <span className="text-lg">🚪</span>
-          <span>Cerrar sesión</span>
+          <Icons.logout className="h-4 w-4" />
+          Cerrar sesión
         </button>
       </div>
     </aside>
-  )
+  );
 }

@@ -1,7 +1,50 @@
 @import "tailwindcss";
 
+@theme {
+  /* Paleta base solicitada */
+  --color-mist: #bbbfbf;
+  --color-stone-gray: #878787;
+  --color-brand: #05ad98;
+  --color-brand-dark: #048a7a;
+  --color-brand-darker: #03695e;
+  --color-brand-tint: #e6f7f4;
+  --color-brand-border: #bfe9e2;
+
+  /* Derivados profesionales para contraste y legibilidad */
+  --color-ink: #1f2a29;
+  --color-ink-soft: #3a4746;
+  --color-slate-line: #e2e6e6;
+  --color-canvas: #f4f5f5;
+  --color-sidebar: #1e2928;
+  --color-sidebar-hover: #283836;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
 body {
-  background: #ffffff;
-  color: #000000;
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco accesible coherente con la marca */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* Scrollbar sutil */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #bbbfbf;
+  border-radius: 8px;
+  border: 2px solid #f4f5f5;
 }
