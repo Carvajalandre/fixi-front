@@ -1,229 +1,194 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { getTickets } from "../../../src/lib/tickets"
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getTickets } from "../../../src/lib/tickets";
+import {
+  Card,
+  Icons,
+  LoadingState,
+  PageHeader,
+} from "../../../src/components/ui";
 
 type TicketStatus = {
-  id: number
-  status_name: string
-}
+  id: number;
+  status_name: string;
+};
 
 type Ticket = {
-  id: number
-  title: string
-  description: string
-  status: TicketStatus
-  requester: { full_name: string }
-  assigned_support: { full_name: string } | null
-}
+  id: number;
+  title: string;
+  description: string;
+  status: TicketStatus;
+  requester: { full_name: string };
+  assigned_support: { full_name: string } | null;
+};
 
 export default function SupportDashboardPage() {
-  const [userName, setUserName] = useState("")
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
+  const [userName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const stored = localStorage.getItem("user");
+      if (!stored) return "";
+      return JSON.parse(stored).full_name || "Soporte";
+    } catch {
+      return "Soporte";
+    }
+  });
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user")
-    if (stored) {
-      const user = JSON.parse(stored)
-      setUserName(user.full_name || "Soporte")
-    }
-
-    loadTickets()
-  }, [])
+    loadTickets();
+  }, []);
 
   const loadTickets = async () => {
     try {
-      const data = await getTickets()
-      setTickets(data)
+      const data = await getTickets();
+      setTickets(data);
     } catch (error) {
-      console.error("Error al cargar tickets", error)
+      console.error("Error al cargar tickets", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const stats = {
     total: tickets.length,
     open: tickets.filter((t) => t.status?.status_name === "open").length,
-    inProgress: tickets.filter((t) => t.status?.status_name === "in_progress").length,
+    inProgress: tickets.filter((t) => t.status?.status_name === "in_progress")
+      .length,
     finished: tickets.filter((t) => t.status?.status_name === "finish").length,
     unassigned: tickets.filter((t) => !t.assigned_support).length,
-  }
+  };
+
+  const cards = [
+    {
+      label: "Total",
+      value: stats.total,
+      icon: <Icons.chart className="h-5 w-5" />,
+      box: "bg-[#eef1f1] text-[#3a4746]",
+    },
+    {
+      label: "Abiertos",
+      value: stats.open,
+      icon: <Icons.inbox className="h-5 w-5" />,
+      box: "bg-[#fef6e7] text-[#92580a]",
+    },
+    {
+      label: "En progreso",
+      value: stats.inProgress,
+      icon: <Icons.clock className="h-5 w-5" />,
+      box: "bg-[#e6f7f4] text-[#03695e]",
+    },
+    {
+      label: "Finalizados",
+      value: stats.finished,
+      icon: <Icons.check className="h-5 w-5" />,
+      box: "bg-[#eef1f1] text-[#3a4746]",
+    },
+    {
+      label: "Sin asignar",
+      value: stats.unassigned,
+      icon: <Icons.alert className="h-5 w-5" />,
+      box: "bg-white text-[#92580a] border border-[#f0dcb4]",
+    },
+  ];
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header de bienvenida */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          Panel de Soporte 🛠️
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Bienvenido{userName ? `, ${userName.split(" ")[0]}` : ""} - Gestiona y resuelve tickets
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title={`Panel de soporte${userName ? ` — ${userName.split(" ")[0]}` : ""}`}
+        description="Supervisa la carga de trabajo, prioriza casos y da seguimiento."
+        actions={
+          <Link
+            href="/dashboard/support/tickets"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#05AD98] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#048a7a]"
+          >
+            <Icons.ticket className="h-4 w-4" />
+            Gestionar tickets
+          </Link>
+        }
+      />
 
-      {/* Estadísticas principales */}
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <Card>
+          <LoadingState label="Cargando indicadores…" />
+        </Card>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all">
-              <div className="text-4xl mb-2">📊</div>
-              <div className="text-3xl font-bold text-gray-800">{stats.total}</div>
-              <div className="text-sm text-gray-600 font-medium">Total Tickets</div>
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg shadow-lg border border-yellow-200 p-6 hover:shadow-xl transition-all">
-              <div className="text-4xl mb-2">🔓</div>
-              <div className="text-3xl font-bold text-yellow-800">{stats.open}</div>
-              <div className="text-sm text-yellow-700 font-medium">Abiertos</div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg shadow-lg border border-blue-200 p-6 hover:shadow-xl transition-all">
-              <div className="text-4xl mb-2">⚙️</div>
-              <div className="text-3xl font-bold text-blue-800">{stats.inProgress}</div>
-              <div className="text-sm text-blue-700 font-medium">En Progreso</div>
-            </div>
-
-            <div className="bg-green-50 rounded-lg shadow-lg border border-green-200 p-6 hover:shadow-xl transition-all">
-              <div className="text-4xl mb-2">✅</div>
-              <div className="text-3xl font-bold text-green-800">{stats.finished}</div>
-              <div className="text-sm text-green-700 font-medium">Finalizados</div>
-            </div>
-
-            <div className="bg-orange-50 rounded-lg shadow-lg border border-orange-200 p-6 hover:shadow-xl transition-all">
-              <div className="text-4xl mb-2">⚠️</div>
-              <div className="text-3xl font-bold text-orange-800">{stats.unassigned}</div>
-              <div className="text-sm text-orange-700 font-medium">Sin Asignar</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+            {cards.map((c) => (
+              <Card key={c.label} className="p-4">
+                <div
+                  className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${c.box}`}
+                >
+                  {c.icon}
+                </div>
+                <div className="text-2xl font-semibold tracking-tight text-[#1f2a29]">
+                  {c.value}
+                </div>
+                <div className="text-[13px] font-medium text-[#5b6665]">
+                  {c.label}
+                </div>
+              </Card>
+            ))}
           </div>
 
-          {/* Acciones rápidas */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <Link href="/dashboard/support/tickets">
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all cursor-pointer group">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                    🎫
+          {stats.unassigned > 0 && (
+            <Card className="mb-4 border-[#f0dcb4] bg-[#fef6e7] p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-[#92580a] border border-[#f0dcb4]">
+                    <Icons.alert className="h-5 w-5" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
-                      Ver Todos los Tickets
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      Gestiona, filtra y actualiza el estado de tickets
+                  <div>
+                    <p className="text-sm font-semibold text-[#5f3d08]">
+                      {stats.unassigned} caso
+                      {stats.unassigned !== 1 ? "s" : ""} pendiente
+                      {stats.unassigned !== 1 ? "s" : ""} de asignación
+                    </p>
+                    <p className="text-[13px] text-[#92580a]">
+                      Asigna responsables para mantener el flujo operativo.
                     </p>
                   </div>
                 </div>
+                <Link
+                  href="/dashboard/support/tickets"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1e2928] px-4 py-2 text-sm font-semibold text-white hover:bg-[#283836]"
+                >
+                  Revisar ahora
+                  <Icons.arrowRight className="h-4 w-4" />
+                </Link>
               </div>
-            </Link>
+            </Card>
+          )}
 
-            {stats.unassigned > 0 && (
-              <Link href="/dashboard/support/tickets">
-                <div className="bg-orange-50 rounded-lg shadow-lg border border-orange-200 p-6 hover:shadow-xl transition-all cursor-pointer group">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                      ⚠️
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-orange-800 mb-2 group-hover:text-orange-600 transition-colors">
-                        Tickets Sin Asignar
-                      </h3>
-                      <p className="text-orange-700 text-sm">
-                        Hay {stats.unassigned} ticket{stats.unassigned !== 1 ? "s" : ""} esperando asignación
-                      </p>
-                    </div>
-                  </div>
+          <Card className="p-6 md:p-7">
+            <h3 className="text-[15px] font-semibold text-[#1f2a29]">
+              Flujo operativo recomendado
+            </h3>
+            <div className="mt-5 grid md:grid-cols-4 gap-4">
+              {[
+                { n: "01", t: "Revisar", d: "Identifica casos nuevos y sin asignar." },
+                { n: "02", t: "Asignar", d: "Toma el caso y márcalo en progreso." },
+                { n: "03", t: "Resolver", d: "Aplica la solución documentada." },
+                { n: "04", t: "Finalizar", d: "Cierra solo cuando esté verificado." },
+              ].map((s) => (
+                <div key={s.n} className="border-l-2 border-[#05AD98]/40 pl-4">
+                  <p className="text-xs font-bold tracking-widest text-[#05AD98]">
+                    {s.n}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-[#1f2a29]">
+                    {s.t}
+                  </p>
+                  <p className="mt-1 text-[13px] text-[#5b6665]">{s.d}</p>
                 </div>
-              </Link>
-            )}
-          </div>
+              ))}
+            </div>
+          </Card>
         </>
       )}
-
-      {/* Guía de trabajo */}
-      <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 mb-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <span>📋</span>
-          Flujo de Trabajo
-        </h3>
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-              1️⃣
-            </div>
-            <h4 className="font-bold text-gray-800 mb-2">Revisar</h4>
-            <p className="text-sm text-gray-600">
-              Identifica tickets nuevos y sin asignar
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-              2️⃣
-            </div>
-            <h4 className="font-bold text-gray-800 mb-2">Asignar</h4>
-            <p className="text-sm text-gray-600">
-              Toma el ticket y cambia estado a "En progreso"
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-              3️⃣
-            </div>
-            <h4 className="font-bold text-gray-800 mb-2">Resolver</h4>
-            <p className="text-sm text-gray-600">
-              Trabaja en la solución del problema
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-              4️⃣
-            </div>
-            <h4 className="font-bold text-gray-800 mb-2">Finalizar</h4>
-            <p className="text-sm text-gray-600">
-              Marca como "Finalizado" cuando esté resuelto
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Consejos */}
-      <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
-        <div className="flex items-start gap-4">
-          <div className="text-4xl">💡</div>
-          <div className="flex-1">
-            <h4 className="text-lg font-bold text-blue-900 mb-3">
-              Buenas Prácticas
-            </h4>
-            <ul className="space-y-2 text-blue-800 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Prioriza tickets sin asignar y abiertos</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Mantén actualizado el estado del ticket</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Comunica claramente con el solicitante</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Solo marca como finalizado cuando esté completamente resuelto</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
-  )
+  );
 }
