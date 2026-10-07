@@ -49,7 +49,7 @@ export default function Sidebar({ isSupport = false }: SidebarProps) {
   const initial = userName.charAt(0).toUpperCase() || "U";
 
   return (
-    <aside className="w-[260px] shrink-0 bg-[#1e2928] text-white min-h-screen flex flex-col">
+    <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col bg-[#1e2928] text-white">
       {/* Marca */}
       <div className="px-5 pt-6 pb-5 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export default function Sidebar({ isSupport = false }: SidebarProps) {
       </div>
 
       {/* Navegación */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         <p className="px-3.5 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#878787]">
           Principal
         </p>
@@ -108,8 +108,8 @@ export default function Sidebar({ isSupport = false }: SidebarProps) {
         </Link>
       </nav>
 
-      {/* Cierre */}
-      <div className="p-3 border-t border-white/10">
+      {/* Cierre - siempre visible al pie del sidebar fijo */}
+      <div className="mt-auto p-3 border-t border-white/10 bg-[#1e2928]">
         <button
           onClick={handleLogout}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[#e2e6e6] transition-colors hover:bg-white/10 hover:text-white"

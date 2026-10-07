@@ -48,6 +48,10 @@ export default function ProfileView({
     { label: "Rol en el sistema", value: user.role, mono: false },
   ];
 
+  // Misma identidad que en el sidebar: inicial del nombre (no hay foto real).
+  const initial =
+    user.name && user.name !== "—" ? user.name.trim().charAt(0).toUpperCase() : "";
+
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
@@ -66,8 +70,15 @@ export default function ProfileView({
         </div>
         <div className="px-6 md:px-8 pb-7">
           <div className="-mt-10 mb-4 flex items-end justify-between">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-[#e6f7f4] text-[#03695e] shadow-sm">
-              <Icons.user className="h-8 w-8" />
+            <div
+              className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-[#e6f7f4] text-[#03695e] shadow-sm"
+              aria-label={`Avatar de ${user.name}`}
+            >
+              {initial ? (
+                <span className="text-3xl font-bold">{initial}</span>
+              ) : (
+                <Icons.user className="h-8 w-8" />
+              )}
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#bfe9e2] bg-[#e6f7f4] px-3 py-1 text-xs font-semibold text-[#03695e]">
               {user.role === "Soporte" ? (
