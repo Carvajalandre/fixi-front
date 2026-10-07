@@ -1,3 +1,13 @@
+## User test:
+[fixi](https://github.com/Carvajalandre/fixi)
+- /database/seeders/UserSeeder.php
+## Support:
+- email: andres@gmail.com
+- password: password123
+## User:
+- email: alejandro@gmail.com
+- password: password123
+##
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
