@@ -1,3 +1,4 @@
+AVISO: Al estar desplegada de forma gratuita puede demorar un poco el inicio de sesión al primer intento
 ## User test:
 [fixi](https://github.com/Carvajalandre/fixi)
 - /database/seeders/UserSeeder.php
